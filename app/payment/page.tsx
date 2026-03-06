@@ -69,8 +69,8 @@ export default function PaymentPage() {
   const tr = t[lang] ?? t.English;
 
   useEffect(() => {
-    const storedData = localStorage.getItem("gatepass_registration_data");
-    const storedMethod = localStorage.getItem("gatepass_payment_method") as
+    const storedData = localStorage.getItem("e-gate_registration_data");
+    const storedMethod = localStorage.getItem("e-gate_payment_method") as
       | "momo"
       | "card";
     if (!storedData || !storedMethod) {
@@ -92,7 +92,7 @@ export default function PaymentPage() {
     setIsProcessing(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      localStorage.setItem("gatepass_payment_status", "success");
+      localStorage.setItem("e-gate_payment_status", "success");
       router.push("/confirmation");
     } catch (error) {
       console.error(error);

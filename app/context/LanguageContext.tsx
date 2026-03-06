@@ -19,7 +19,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const storedLang = localStorage.getItem("gatepass_language") as Language;
+    const storedLang = localStorage.getItem("e-gate_language") as Language;
     if (storedLang) {
       setLangState(storedLang);
     }
@@ -27,7 +27,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
-    localStorage.setItem("gatepass_language", newLang);
+    localStorage.setItem("e-gate_language", newLang);
   };
 
   // Prevent hydration mismatch by not rendering anything that depends on language initially

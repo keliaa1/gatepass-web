@@ -31,7 +31,7 @@ const t = {
     codeLabel: "Secret Access Code",
     codePlaceholder: "Enter Code (hint: 123456)",
     verifyBtn: "Verify Code",
-    formTitle: "Register Visit - GatePass",
+    formTitle: "Register Visit - e-gate",
     formDesc: "Please provide your valid ID and visitor count below.",
     visitorSection: "Visitor Details",
     studentSection: "Student Details",
@@ -56,7 +56,7 @@ const t = {
     codeLabel: "Code d'Accès Secret",
     codePlaceholder: "Entrez le code (indice: 123456)",
     verifyBtn: "Vérifier le Code",
-    formTitle: "Enregistrer la Visite - GatePass",
+    formTitle: "Enregistrer la Visite - e-gate",
     formDesc:
       "Veuillez fournir votre pièce d'identité et le nombre de visiteurs.",
     visitorSection: "Détails du Visiteur",
@@ -82,7 +82,7 @@ const t = {
     codeLabel: "Kode Yibanga",
     codePlaceholder: "Injiza kode (urugero: 123456)",
     verifyBtn: "Emeza Kode",
-    formTitle: "Iyandikisha - GatePass",
+    formTitle: "Iyandikisha - e-gate",
     formDesc: "Tanga indangamuntu yawe n'umubare w'abashyitsi.",
     visitorSection: "Amakuru y'Umushyitsi",
     studentSection: "Amakuru y'Umunyeshuri",
@@ -160,7 +160,7 @@ export default function RegistrationPage() {
   };
 
   const onSubmit = (data: RegistrationFormData) => {
-    localStorage.setItem("gatepass_registration_data", JSON.stringify(data));
+    localStorage.setItem("e-gate_registration_data", JSON.stringify(data));
     router.push("/checkout");
   };
 
