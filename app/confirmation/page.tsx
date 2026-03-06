@@ -71,9 +71,9 @@ export default function ConfirmationPage() {
   const tr = t[lang as keyof typeof t] ?? t.English;
 
   useEffect(() => {
-    const status = localStorage.getItem("gatepass_payment_status");
-    const storedData = localStorage.getItem("gatepass_registration_data");
-    const qr = localStorage.getItem("gatepass_qr_code");
+    const status = localStorage.getItem("e-gate_payment_status");
+    const storedData = localStorage.getItem("e-gate_registration_data");
+    const qr = localStorage.getItem("e-gate_qr_code");
 
     if (!status || !storedData) {
       router.replace("/");

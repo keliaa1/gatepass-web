@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GatePass | School Registration",
+  title: "e-gate | School Registration",
   description: "Register your visit for Sasa schools.",
 };
 

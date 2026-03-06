@@ -33,10 +33,10 @@ export default function WelcomePage() {
             </div>
             <CardTitle className="text-2xl sm:text-3xl font-bold">
               {lang === "Français"
-                ? "Bienvenue à GatePass"
+                ? "Bienvenue à e-gate"
                 : lang === "Kinyarwanda"
-                  ? "Murakaza neza kuri GatePass"
-                  : "Welcome to GatePass"}
+                  ? "Murakaza neza kuri e-gate"
+                  : "Welcome to e-gate"}
             </CardTitle>
             <CardDescription className="text-sm sm:text-base mx-auto max-w-[85%] mt-2">
               {lang === "Français"

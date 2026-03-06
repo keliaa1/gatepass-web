@@ -32,7 +32,7 @@ const t = {
     codeLabel: "Secret Access Code",
     codePlaceholder: "Enter Code (hint: 123456)",
     verifyBtn: "Verify Code",
-    formTitle: "Register Visit - GatePass",
+    formTitle: "Register Visit - e-gate",
     formDesc: "Please provide your valid ID and visitor count below.",
     visitorSection: "Visitor Details",
     studentSection: "Student Details",
@@ -57,7 +57,7 @@ const t = {
     codeLabel: "Code d'Accès Secret",
     codePlaceholder: "Entrez le code (indice: 123456)",
     verifyBtn: "Vérifier le Code",
-    formTitle: "Enregistrer la Visite - GatePass",
+    formTitle: "Enregistrer la Visite - e-gate",
     formDesc:
       "Veuillez fournir votre pièce d'identité et le nombre de visiteurs.",
     visitorSection: "Détails du Visiteur",
@@ -83,7 +83,7 @@ const t = {
     codeLabel: "Kode Yibanga",
     codePlaceholder: "Injiza kode (urugero: 123456)",
     verifyBtn: "Emeza Kode",
-    formTitle: "Iyandikisha - GatePass",
+    formTitle: "Iyandikisha - e-gate",
     formDesc: "Tanga indangamuntu yawe n'umubare w'abashyitsi.",
     visitorSection: "Amakuru y'Umushyitsi",
     studentSection: "Amakuru y'Umunyeshuri",
@@ -114,7 +114,6 @@ export default function RegistrationPage() {
   const { lang } = useLanguage();
   const tr = t[lang as keyof typeof t] ?? t.English;
 
-  // --- Flow State ---
   const [hasValidCode, setHasValidCode] = useState(false);
   const [gateCodeError, setGateCodeError] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
@@ -147,14 +146,13 @@ export default function RegistrationPage() {
   const visitorCount = watch("visitorCount") || 1;
   const relationship = watch("relationship");
 
-  // Handle Gate Code Submission
   const handleCodeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const code = formData.get("gateCode") as string;
 
     if (code) {
-      localStorage.setItem("gatepass_visit_code", code);
+      localStorage.setItem("e-gate_visit_code", code);
       setHasValidCode(true);
       setGateCodeError("");
     } else {
@@ -165,7 +163,7 @@ export default function RegistrationPage() {
   const onSubmit = async (data: RegistrationFormData) => {
     setIsRegistering(true);
     try {
-      const visitCode = localStorage.getItem("gatepass_visit_code") || MOCK_GATE_CODE;
+      const visitCode = localStorage.getItem("e-gate_visit_code") || MOCK_GATE_CODE;
 
       const payload = {
         parentName: data.parentName,
@@ -184,8 +182,8 @@ export default function RegistrationPage() {
         await api.addGuests(visitor.id, guests);
       }
 
-      localStorage.setItem("gatepass_visitor_id", visitor.id);
-      localStorage.setItem("gatepass_registration_data", JSON.stringify(data));
+      localStorage.setItem("e-gate_visitor_id", visitor.id);
+      localStorage.setItem("e-gate_registration_data", JSON.stringify(data));
       router.push("/checkout");
     } catch (error: any) {
       alert(error.message || "Failed to register. Please check your details and try again.");
@@ -193,12 +191,11 @@ export default function RegistrationPage() {
     }
   };
 
-  // 1. GATE CODE VIEW
   if (!hasValidCode) {
     return (
       <div className="flex min-h-screen items-center justify-center p-3 sm:p-4">
-        <Card className="w-full max-w-md p-4 sm:p-6">
-          <CardHeader className="px-0 pt-0 text-center">
+        <Card className="w-full max-w-xs sm:max-w-sm p-6 sm:p-8">
+          <CardHeader className="px-0 pt-0 text-center pb-4">
             <CardTitle className="text-xl sm:text-3xl pb-2">
               {tr.codeTitle}
             </CardTitle>
@@ -209,7 +206,7 @@ export default function RegistrationPage() {
           <CardContent className="px-0 pb-0">
             <form
               onSubmit={handleCodeSubmit}
-              className="space-y-4 sm:space-y-6"
+              className="space-y-5 sm:space-y-6"
             >
               <Input
                 name="gateCode"
@@ -229,7 +226,6 @@ export default function RegistrationPage() {
     );
   }
 
-  // 2. REGISTRATION VIEW
   return (
     <div className="flex min-h-screen items-center justify-center p-3 sm:p-4 py-16 sm:py-12">
       <Card className="w-full max-w-2xl overflow-hidden pt-5 sm:pt-8">
@@ -380,15 +376,15 @@ export default function RegistrationPage() {
         </CardContent>
 
         {/* Sticky Footer matching reference */}
-        <div className="bg-[#f0f2f5] px-4 sm:px-8 py-5 sm:py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-4">
+        <div className="bg-card border-t border-border px-4 sm:px-8 py-5 sm:py-8 flex flex-col sm:flex-row items-start sm:items-center justify-between mt-4 gap-4">
           <div>
-            <p className="text-xl font-bold text-[#153d5d]">
+            <p className="text-xl font-bold text-[#153d5d] dark:text-white">
               {tr.totalPrice}: {calculateTotal(Number(visitorCount) || 0)} RWF
             </p>
-            <p className="text-sm text-[#153d5d] mt-1 font-medium">
+            <p className="text-sm text-[#153d5d] dark:text-white mt-1 font-medium">
               {tr.paymentNote}
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2">
               By clicking the button you agree to our{" "}
               <a href="#" className="underline">
                 {tr.privacy}
