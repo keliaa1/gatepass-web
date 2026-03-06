@@ -28,7 +28,7 @@ export default function SplashPage() {
           <DoorOpen size={64} strokeWidth={1.5} />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-foreground">
-          GatePass
+          e-gate
         </h1>
         <div className="flex items-center space-x-2 text-muted-foreground pt-4">
           <Loader2 className="h-5 w-5 animate-spin" />

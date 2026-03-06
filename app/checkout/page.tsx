@@ -65,7 +65,7 @@ export default function CheckoutPage() {
   const tr = t[lang as keyof typeof t] ?? t.English;
 
   useEffect(() => {
-    const stored = localStorage.getItem("gatepass_registration_data");
+    const stored = localStorage.getItem("e-gate_registration_data");
     if (!stored) {
       router.replace("/register");
       return;
@@ -78,7 +78,7 @@ export default function CheckoutPage() {
   const totalAmount = calculateTotal(data.visitorCount);
 
   const handleProceed = () => {
-    localStorage.setItem("gatepass_payment_method", "momo");
+    localStorage.setItem("e-gate_payment_method", "momo");
     router.push("/payment");
   };
 

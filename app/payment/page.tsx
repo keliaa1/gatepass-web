@@ -71,8 +71,8 @@ export default function PaymentPage() {
   const tr = t[lang as keyof typeof t] ?? t.English;
 
   useEffect(() => {
-    const storedData = localStorage.getItem("gatepass_registration_data");
-    const storedMethod = localStorage.getItem("gatepass_payment_method");
+    const storedData = localStorage.getItem("e-gate_registration_data");
+    const storedMethod = localStorage.getItem("e-gate_payment_method");
     if (!storedData || !storedMethod) {
       router.replace("/register");
       return;
@@ -93,12 +93,12 @@ export default function PaymentPage() {
   const handleConfirm = async () => {
     setIsProcessing(true);
     try {
-      const visitorId = localStorage.getItem("gatepass_visitor_id");
+      const visitorId = localStorage.getItem("e-gate_visitor_id");
       if (!visitorId) {
         throw new Error("Missing visitor ID. Please restart the registration process.");
       }
       await api.processPayment(visitorId, { network: "MTN", phoneNumber: data.phoneNumber });
-      localStorage.setItem("gatepass_payment_status", "pending");
+      localStorage.setItem("e-gate_payment_status", "pending");
       router.push("/confirmation");
     } catch (error: any) {
       console.error(error);
