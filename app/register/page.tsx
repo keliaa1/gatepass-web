@@ -18,8 +18,9 @@ import {
   registrationSchema,
   RegistrationFormData,
 } from "@/app/utils/formValidation";
-import { CopyPlus, Trash2 } from "lucide-react";
+import { CopyPlus, Trash2, Loader2 } from "lucide-react";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { api } from "@/app/utils/api";
 
 const MOCK_GATE_CODE = "123456";
 
@@ -111,11 +112,12 @@ const t = {
 export default function RegistrationPage() {
   const router = useRouter();
   const { lang } = useLanguage();
-  const tr = t[lang] ?? t.English;
+  const tr = t[lang as keyof typeof t] ?? t.English;
 
   // --- Flow State ---
   const [hasValidCode, setHasValidCode] = useState(false);
   const [gateCodeError, setGateCodeError] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const {
     register,
@@ -151,7 +153,8 @@ export default function RegistrationPage() {
     const formData = new FormData(e.currentTarget);
     const code = formData.get("gateCode") as string;
 
-    if (code === MOCK_GATE_CODE) {
+    if (code) {
+      localStorage.setItem("gatepass_visit_code", code);
       setHasValidCode(true);
       setGateCodeError("");
     } else {
@@ -159,9 +162,35 @@ export default function RegistrationPage() {
     }
   };
 
-  const onSubmit = (data: RegistrationFormData) => {
-    localStorage.setItem("gatepass_registration_data", JSON.stringify(data));
-    router.push("/checkout");
+  const onSubmit = async (data: RegistrationFormData) => {
+    setIsRegistering(true);
+    try {
+      const visitCode = localStorage.getItem("gatepass_visit_code") || MOCK_GATE_CODE;
+
+      const payload = {
+        parentName: data.parentName,
+        phone: data.phoneNumber,
+        studentName: data.studentNames.join(", "),
+        visitCode: visitCode,
+      };
+
+      const visitor = await api.registerVisitor(payload);
+
+      if (data.visitorCount > 1) {
+        const guests = [];
+        for (let i = 1; i < data.visitorCount; i++) {
+          guests.push({ name: `Guest ${i}`, relationship: data.relationshipOther || data.relationship });
+        }
+        await api.addGuests(visitor.id, guests);
+      }
+
+      localStorage.setItem("gatepass_visitor_id", visitor.id);
+      localStorage.setItem("gatepass_registration_data", JSON.stringify(data));
+      router.push("/checkout");
+    } catch (error: any) {
+      alert(error.message || "Failed to register. Please check your details and try again.");
+      setIsRegistering(false);
+    }
   };
 
   // 1. GATE CODE VIEW
@@ -260,7 +289,7 @@ export default function RegistrationPage() {
                     className="w-full rounded-2xl border border-input bg-background px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                   >
                     <option value="">— Select —</option>
-                    {tr.relationshipOptions.map((opt) => (
+                    {tr.relationshipOptions.map((opt: string) => (
                       <option key={opt} value={opt}>
                         {opt}
                       </option>
@@ -321,7 +350,7 @@ export default function RegistrationPage() {
               <div className="space-y-4">
                 {/* Always render at least 1 student field */}
                 {(fields.length === 0 ? [{ id: "default-0" }] : fields).map(
-                  (field, index) => (
+                  (field: any, index: number) => (
                     <div key={field.id} className="flex items-start space-x-2">
                       <div className="flex-1">
                         <Input
@@ -372,9 +401,11 @@ export default function RegistrationPage() {
             type="submit"
             size="lg"
             className="w-full sm:w-auto mt-6 sm:mt-0 min-w-[200px]"
-            disabled={!isValid}
+            disabled={!isValid || isRegistering}
           >
-            {tr.proceed}
+            {isRegistering ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Registering...</>
+            ) : tr.proceed}
           </Button>
         </div>
       </Card>

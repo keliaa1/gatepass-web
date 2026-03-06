@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { RegistrationFormData } from "@/app/utils/formValidation";
 import { calculateTotal } from "@/app/utils/priceCalculator";
 import { Button } from "@/app/components/Button";
-import { Input } from "@/app/components/Input";
 import {
   Card,
   CardContent,
@@ -15,45 +14,50 @@ import {
   CardTitle,
 } from "@/app/components/Card";
 import { useLanguage } from "@/app/context/LanguageContext";
+import { api } from "@/app/utils/api";
+import { Phone, Copy, CheckCircle2 } from "lucide-react";
+
+const SCHOOL_MOMO_NUMBER = "0792631246";
+const SCHOOL_MOMO_NAME = "Isabella Nkunda";
 
 const t = {
   English: {
-    title: "Complete Payment",
-    desc: (amount: number, method: string) =>
-      `You are paying ${amount} RWF via ${method}.`,
-    momoLabel: "Mobile Money Number",
-    momoPlaceholder: "e.g. 078XXXXXXX",
-    cardNumber: "Card Number",
-    expiry: "Expiry Date",
-    cvv: "CVV",
-    processing: "Processing...",
-    pay: (amount: number) => `Pay ${amount} RWF`,
+    title: "Pay via Mobile Money",
+    desc: "Send the exact amount to the number below using your preferred Mobile Money service.",
+    sendTo: "Send to",
+    amount: "Amount to Send",
+    copy: "Copy Number",
+    copied: "Copied!",
+    openPhone: "Open Phone App",
+    confirm: "I've Completed the Payment",
+    processing: "Submitting…",
+    warning: "⚠️ Do not close this page until you tap the button below.",
     cancel: "Cancel",
   },
   Français: {
-    title: "Finaliser le Paiement",
-    desc: (amount: number, method: string) =>
-      `Vous payez ${amount} RWF via ${method}.`,
-    momoLabel: "Numéro Mobile Money",
-    momoPlaceholder: "ex. 078XXXXXXX",
-    cardNumber: "Numéro de Carte",
-    expiry: "Date d'Expiration",
-    cvv: "CVV",
-    processing: "Traitement en cours...",
-    pay: (amount: number) => `Payer ${amount} RWF`,
+    title: "Payer via Mobile Money",
+    desc: "Envoyez le montant exact au numéro ci-dessous via votre service Mobile Money.",
+    sendTo: "Envoyer à",
+    amount: "Montant à Envoyer",
+    copy: "Copier le numéro",
+    copied: "Copié !",
+    openPhone: "Ouvrir l'App Téléphone",
+    confirm: "J'ai effectué le paiement",
+    processing: "Envoi en cours…",
+    warning: "⚠️ Ne fermez pas cette page avant d'appuyer sur le bouton ci-dessous.",
     cancel: "Annuler",
   },
   Kinyarwanda: {
-    title: "Soza Kwishyura",
-    desc: (amount: number, method: string) =>
-      `Uri kwishyura ${amount} RWF ukoresheje ${method}.`,
-    momoLabel: "Numero ya Mobile Money",
-    momoPlaceholder: "urugero: 078XXXXXXX",
-    cardNumber: "Numero ya Karita",
-    expiry: "Itariki yo Kurangira",
-    cvv: "CVV",
-    processing: "Birakozwe...",
-    pay: (amount: number) => `Ishyura ${amount} RWF`,
+    title: "Ishyura ukoresheje Mobile Money",
+    desc: "Ohereza amafaranga nayo ku nimero iri hasi ukoresheje serivisi ya Mobile Money uhitamo.",
+    sendTo: "Ohereza kuri",
+    amount: "Amafaranga Wohereza",
+    copy: "Kopa Nimero",
+    copied: "Yakopowe!",
+    openPhone: "Fungura Porogaramu ya Telefone",
+    confirm: "Nohereje Amafaranga",
+    processing: "Birashyirwa…",
+    warning: "⚠️ Ntugomba gufunga urupapuro mbere yo gukanda buto iri hasi.",
     cancel: "Hagarika",
   },
 };
@@ -61,41 +65,44 @@ const t = {
 export default function PaymentPage() {
   const router = useRouter();
   const [data, setData] = useState<RegistrationFormData | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"momo" | "card" | null>(
-    null,
-  );
   const [isProcessing, setIsProcessing] = useState(false);
+  const [numberCopied, setNumberCopied] = useState(false);
   const { lang } = useLanguage();
-  const tr = t[lang] ?? t.English;
+  const tr = t[lang as keyof typeof t] ?? t.English;
 
   useEffect(() => {
     const storedData = localStorage.getItem("gatepass_registration_data");
-    const storedMethod = localStorage.getItem("gatepass_payment_method") as
-      | "momo"
-      | "card";
+    const storedMethod = localStorage.getItem("gatepass_payment_method");
     if (!storedData || !storedMethod) {
       router.replace("/register");
       return;
     }
     setData(JSON.parse(storedData));
-    setPaymentMethod(storedMethod);
   }, [router]);
 
-  if (!data || !paymentMethod) return null;
+  if (!data) return null;
 
   const totalAmount = calculateTotal(data.visitorCount);
-  const methodLabel =
-    paymentMethod === "momo" ? "Mobile Money" : "Credit/Debit Card";
 
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const copyNumber = async () => {
+    await navigator.clipboard.writeText(SCHOOL_MOMO_NUMBER);
+    setNumberCopied(true);
+    setTimeout(() => setNumberCopied(false), 2500);
+  };
+
+  const handleConfirm = async () => {
     setIsProcessing(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      localStorage.setItem("gatepass_payment_status", "success");
+      const visitorId = localStorage.getItem("gatepass_visitor_id");
+      if (!visitorId) {
+        throw new Error("Missing visitor ID. Please restart the registration process.");
+      }
+      await api.processPayment(visitorId, { network: "MTN", phoneNumber: data.phoneNumber });
+      localStorage.setItem("gatepass_payment_status", "pending");
       router.push("/confirmation");
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      alert(error.message || "Something went wrong. Please try again.");
       setIsProcessing(false);
     }
   };
@@ -104,64 +111,69 @@ export default function PaymentPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/30 p-3 sm:p-4 md:p-8 py-14 sm:py-12">
       <Card className="w-full max-w-md border-border shadow-lg">
         <CardHeader>
-          <CardTitle className="text-xl sm:text-2xl">{tr.title}</CardTitle>
-          <CardDescription>{tr.desc(totalAmount, methodLabel)}</CardDescription>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Phone className="h-5 w-5" />
+            </div>
+            <CardTitle className="text-xl sm:text-2xl">{tr.title}</CardTitle>
+          </div>
+          <CardDescription>{tr.desc}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <form
-            id="payment-form"
-            onSubmit={handlePayment}
-            className="space-y-4"
-          >
-            {paymentMethod === "momo" ? (
-              <Input
-                label={tr.momoLabel}
-                placeholder={tr.momoPlaceholder}
-                required
-                defaultValue={data.phoneNumber}
-                pattern="^07[2-9][0-9]{7}$"
-                title="Enter a valid Rwandan mobile number"
-              />
-            ) : (
-              <div className="space-y-4">
-                <Input
-                  label={tr.cardNumber}
-                  placeholder="XXXX XXXX XXXX XXXX"
-                  required
-                  pattern="\d{16}"
-                  title="16 digit card number"
-                  maxLength={16}
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label={tr.expiry}
-                    placeholder="MM/YY"
-                    required
-                    pattern="(0[1-9]|1[0-2])\/?([0-9]{2})"
-                    maxLength={5}
-                  />
-                  <Input
-                    label={tr.cvv}
-                    placeholder="123"
-                    type="password"
-                    required
-                    pattern="\d{3,4}"
-                    maxLength={4}
-                  />
-                </div>
+
+        <CardContent className="space-y-4">
+          {/* MoMo number card */}
+          <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {tr.sendTo}
+            </p>
+            {/* Big copyable number */}
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-mono font-bold text-3xl text-foreground tracking-widest">
+                  {SCHOOL_MOMO_NUMBER}
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">{SCHOOL_MOMO_NAME}</p>
               </div>
-            )}
-          </form>
+              <Button variant="outline" size="sm" onClick={copyNumber} className="shrink-0 gap-2">
+                {numberCopied
+                  ? <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  : <Copy className="h-4 w-4" />}
+                {numberCopied ? tr.copied : tr.copy}
+              </Button>
+            </div>
+
+            {/* Amount */}
+            <div className="border-t border-primary/20 pt-3 flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">{tr.amount}</span>
+              <span className="font-bold text-2xl text-primary">
+                {totalAmount} <span className="text-base font-semibold">RWF</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Open phone dialer button */}
+          <a href={`tel:${SCHOOL_MOMO_NUMBER}`} className="block">
+            <Button variant="outline" className="w-full gap-2" size="lg">
+              <Phone className="h-4 w-4" />
+              {tr.openPhone}
+            </Button>
+          </a>
+
+          {/* Warning */}
+          <p className="text-sm text-yellow-700 dark:text-yellow-400 text-center px-2">
+            {tr.warning}
+          </p>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-3">
+
+        <CardFooter className="flex flex-col gap-3">
           <Button
-            form="payment-form"
-            type="submit"
             className="w-full"
             size="lg"
+            onClick={handleConfirm}
             isLoading={isProcessing}
+            disabled={isProcessing}
           >
-            {isProcessing ? tr.processing : tr.pay(totalAmount)}
+            {isProcessing ? tr.processing : tr.confirm}
           </Button>
           <Button
             variant="ghost"
