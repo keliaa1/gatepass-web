@@ -168,8 +168,8 @@ export default function RegistrationPage() {
   if (!hasValidCode) {
     return (
       <div className="flex min-h-screen items-center justify-center p-3 sm:p-4">
-        <Card className="w-full max-w-md p-4 sm:p-6">
-          <CardHeader className="px-0 pt-0 text-center">
+        <Card className="w-full max-w-xs sm:max-w-sm p-6 sm:p-8">
+          <CardHeader className="px-0 pt-0 text-center pb-4">
             <CardTitle className="text-xl sm:text-3xl pb-2">
               {tr.codeTitle}
             </CardTitle>
@@ -180,7 +180,7 @@ export default function RegistrationPage() {
           <CardContent className="px-0 pb-0">
             <form
               onSubmit={handleCodeSubmit}
-              className="space-y-4 sm:space-y-6"
+              className="space-y-5 sm:space-y-6"
             >
               <Input
                 name="gateCode"
